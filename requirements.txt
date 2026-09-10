@@ -1,0 +1,12 @@
+# Versiones auditadas con pip-audit (sin vulnerabilidades conocidas).
+# Vuelve a auditarlas de vez en cuando:  pip-audit
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+starlette==1.6.0
+sqlalchemy==2.0.36
+pydantic==2.10.4
+pydantic-settings==2.7.0
+email-validator==2.2.0
+python-multipart==0.0.32
+PyJWT==2.13.0
+bcrypt==4.2.1

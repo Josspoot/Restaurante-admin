@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.db
+*.sqlite3
+.pytest_cache/
+.DS_Store
+
+# Configuración local del IDE
+.idea/
+.vscode/
