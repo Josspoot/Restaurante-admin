@@ -361,6 +361,11 @@ El proyecto pasó una auditoría completa. Lo que hay que saber para no deshacer
 4. **Arranca uvicorn con `--no-server-header`** para no anunciar servidor y versión.
 5. **Sirve por HTTPS.** El token viaja en la cabecera `Authorization`; sin TLS va en claro.
 
+**Las cuentas de prueba solo existen en desarrollo.** El endpoint `/salud` devuelve
+`demo: true|false` según `ENTORNO`, y la pantalla de entrada solo dibuja los accesos rápidos
+si el servidor lo autoriza. Con `ENTORNO="produccion"` esos botones no llegan a existir, así
+que un usuario administrador de ejemplo no queda a un clic en un servidor público.
+
 ### Lo que ya está puesto
 
 | Defensa | Dónde |

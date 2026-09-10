@@ -172,3 +172,16 @@ def test_csp_bloquea_scripts_externos_y_iframes(client):
 def test_la_app_no_anade_cabecera_server(client):
     """uvicorn añade la suya en la capa de protocolo: se quita con --no-server-header."""
     assert "server" not in {k.lower() for k in client.get("/api/v1/salud").headers}
+
+
+# ============================================== cuentas de demostración
+
+def test_salud_declara_si_es_entorno_de_demo(client):
+    """El front usa esta bandera para decidir si ofrece las cuentas de prueba."""
+    cuerpo = client.get("/api/v1/salud").json()
+    assert cuerpo["demo"] is not settings.es_produccion
+
+
+def test_en_produccion_no_se_ofrecen_cuentas_de_prueba(client, monkeypatch):
+    monkeypatch.setattr(settings, "ENTORNO", "produccion")
+    assert client.get("/api/v1/salud").json()["demo"] is False

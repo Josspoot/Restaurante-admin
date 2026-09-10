@@ -55,14 +55,8 @@ export async function vistaLogin(contenedor) {
                     style="border:none;cursor:pointer;font-weight:600">Regístrate</button>
           </p>
 
-          <div class="demo">
-            <p class="demo__titulo">Cuentas de prueba</p>
-            <div class="demo__botones">
-              ${CUENTAS_DEMO.map(
-                (c, i) => `<button class="chip" data-demo="${i}" type="button">${esc(c.etiqueta)}</button>`
-              ).join("")}
-            </div>
-          </div>
+          <!-- Solo se rellena si el servidor dice que es un entorno de demostración -->
+          <div id="demo"></div>
         </div>
       </section>
     </div>`;
@@ -85,14 +79,42 @@ export async function vistaLogin(contenedor) {
     $("password").autocomplete = modoRegistro ? "new-password" : "current-password";
   });
 
-  contenedor.querySelectorAll("[data-demo]").forEach((boton) => {
-    boton.addEventListener("click", () => {
-      const cuenta = CUENTAS_DEMO[Number(boton.dataset.demo)];
-      $("email").value = cuenta.email;
-      $("password").value = cuenta.password;
-      formulario.requestSubmit();
+  /**
+   * Accesos rápidos de prueba.
+   *
+   * Las credenciales de ejemplo solo se ofrecen si el servidor se declara en
+   * modo demostración. En producción el bloque no llega a existir, así que no
+   * queda un usuario administrador a un clic de distancia.
+   */
+  async function pintarAccesosDemo() {
+    try {
+      const { demo } = await api.salud();
+      if (!demo) return;
+    } catch {
+      return; // si no se puede confirmar, no se ofrecen
+    }
+
+    $("demo").innerHTML = `
+      <div class="demo">
+        <p class="demo__titulo">Cuentas de prueba</p>
+        <div class="demo__botones">
+          ${CUENTAS_DEMO.map(
+            (c, i) => `<button class="chip" data-demo="${i}" type="button">${esc(c.etiqueta)}</button>`
+          ).join("")}
+        </div>
+      </div>`;
+
+    contenedor.querySelectorAll("[data-demo]").forEach((boton) => {
+      boton.addEventListener("click", () => {
+        const cuenta = CUENTAS_DEMO[Number(boton.dataset.demo)];
+        $("email").value = cuenta.email;
+        $("password").value = cuenta.password;
+        formulario.requestSubmit();
+      });
     });
-  });
+  }
+
+  pintarAccesosDemo();
 
   formulario.addEventListener("submit", async (evento) => {
     evento.preventDefault();

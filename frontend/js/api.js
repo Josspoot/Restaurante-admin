@@ -81,6 +81,9 @@ const qs = (obj) => {
 };
 
 export const api = {
+  /** Estado del servidor. Público: no necesita token. */
+  salud: () => pedir("/salud", { publico: true }),
+
   // --- autenticacion ---
   login: (email, password) =>
     pedir("/auth/login-json", { metodo: "POST", cuerpo: { email, password }, publico: true }),

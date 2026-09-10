@@ -158,5 +158,15 @@ def raiz():
 
 @app.get(f"{settings.API_PREFIX}/salud", tags=["Sistema"])
 def salud():
-    """Health check para el front o para un monitor."""
-    return {"estado": "ok", "app": settings.APP_NAME, "version": settings.VERSION}
+    """Health check para el front o para un monitor.
+
+    `demo` le dice a la interfaz si puede ofrecer las cuentas de prueba. En
+    producción va en false y los accesos rápidos desaparecen, para que unas
+    credenciales de ejemplo no queden a un clic en un servidor público.
+    """
+    return {
+        "estado": "ok",
+        "app": settings.APP_NAME,
+        "version": settings.VERSION,
+        "demo": not settings.es_produccion,
+    }
