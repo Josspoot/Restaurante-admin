@@ -444,8 +444,13 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT --no-server-header
 | `CONFIAR_PROXY` | Lee la IP real de `X-Forwarded-For` | `true` **solo si hay un proxy delante** |
 | `SEMBRAR_INICIAL` | Carga el menú de ejemplo si la base está vacía | `true` la primera vez |
 | `ADMIN_PASSWORD` | Contraseña del administrador al sembrar | la tuya |
+
 | `DOCS_PUBLICAS` | Abre `/docs` aunque sea producción | `true` para una demo |
 | `DEMO_ACTIVO` | Muestra los accesos rápidos del login | `true` para una demo |
+
+Al definir `ADMIN_PASSWORD`, el acceso rápido de **Admin** desaparece del login: ese botón
+manda la contraseña de ejemplo y ya no sería la correcta. El administrador entra escribiendo
+su correo y la contraseña que hayas puesto. Los accesos de mesero y cliente siguen ahí.
 
 `DOCS_PUBLICAS` y `DEMO_ACTIVO` son interruptores de tres estados: si no los defines,
 siguen al entorno (abiertos en desarrollo, cerrados en producción). Definirlos manda sobre
