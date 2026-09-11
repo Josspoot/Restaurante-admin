@@ -907,3 +907,5 @@ img { max-width: 100%; display: block; }
 .requisito--ok { color: var(--ok); }
 .requisito--falta { color: var(--tinta-suave); }
 .requisito--falta span { font-weight: 550; }
+
+.demo__nota { margin-top: 10px; font-size: .78rem; color: var(--tinta-tenue); line-height: 1.5; }

@@ -87,21 +87,35 @@ export async function vistaLogin(contenedor) {
    * queda un usuario administrador a un clic de distancia.
    */
   async function pintarAccesosDemo() {
+    let demo, demoAdmin;
     try {
-      const { demo } = await api.salud();
+      ({ demo, demo_admin: demoAdmin } = await api.salud());
       if (!demo) return;
     } catch {
       return; // si no se puede confirmar, no se ofrecen
     }
 
+    // Si el despliegue definió su propia contraseña de administrador, ese
+    // acceso rápido mandaría la de ejemplo y siempre fallaría: mejor no
+    // ofrecerlo y decir por qué.
+    const disponibles = CUENTAS_DEMO.map((cuenta, i) => ({ ...cuenta, i })).filter(
+      (cuenta) => demoAdmin || cuenta.etiqueta !== "Admin"
+    );
+
     $("demo").innerHTML = `
       <div class="demo">
         <p class="demo__titulo">Cuentas de prueba</p>
         <div class="demo__botones">
-          ${CUENTAS_DEMO.map(
-            (c, i) => `<button class="chip" data-demo="${i}" type="button">${esc(c.etiqueta)}</button>`
-          ).join("")}
+          ${disponibles
+            .map((c) => `<button class="chip" data-demo="${c.i}" type="button">${esc(c.etiqueta)}</button>`)
+            .join("")}
         </div>
+        ${
+          demoAdmin
+            ? ""
+            : `<p class="demo__nota">El administrador entra con la contraseña
+                 definida en el servidor, escribiéndola arriba.</p>`
+        }
       </div>`;
 
     contenedor.querySelectorAll("[data-demo]").forEach((boton) => {
