@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.deps import DB, SoloAdmin, UsuarioActual
+from app.core.config import settings
 from app.core.exceptions import NoAutorizado
-from app.core.limitador import limitador_login, limitador_registro
+from app.core.limitador import limitador_cuenta, limitador_login, limitador_registro
 from app.schemas.usuario import (
     Credenciales,
     Token,
@@ -19,11 +20,18 @@ router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
 
 def _ip(peticion: Request) -> str:
-    """IP del cliente.
+    """IP del cliente, para contar intentos de login.
 
-    A propósito no se lee X-Forwarded-For: si no hay un proxy de confianza al
-    frente, cualquiera podría falsificar esa cabecera y saltarse el límite.
+    X-Forwarded-For solo se lee si CONFIAR_PROXY está activo. Sin un proxy de
+    verdad al frente, cualquiera podría falsificar esa cabecera y estrenar
+    cupo de intentos en cada petición; detrás de uno (Render, Railway, Nginx)
+    ocurre lo contrario: sin leerla, todos los usuarios comparten la IP del
+    proxy y el límite se vuelve un bloqueo colectivo.
     """
+    if settings.CONFIAR_PROXY:
+        reenviada = peticion.headers.get("x-forwarded-for", "")
+        if reenviada:
+            return reenviada.split(",")[0].strip()
     return peticion.client.host if peticion.client else "desconocida"
 
 
@@ -32,18 +40,19 @@ def _entrar(db, peticion: Request, email: str, password: str) -> Token:
     correo = email.strip().lower()
     ip, cuenta = f"ip:{_ip(peticion)}", f"cuenta:{correo}"
 
-    # Se limita por IP (un atacante probando muchas cuentas) y por cuenta
-    # (muchos orígenes contra un mismo correo).
-    limitador_login.revisar(ip, cuenta)
+    # Dos cupos: uno estrecho por IP y otro más ancho por cuenta.
+    limitador_login.revisar(ip)
+    limitador_cuenta.revisar(cuenta)
 
     servicio = AuthService(db)
     try:
         usuario = servicio.autenticar(correo, password)
     except NoAutorizado:
-        limitador_login.anotar_fallo(ip, cuenta)
+        limitador_login.anotar_fallo(ip)
+        limitador_cuenta.anotar_fallo(cuenta)
         raise
 
-    limitador_login.limpiar(cuenta)
+    limitador_cuenta.limpiar(cuenta)
     return Token(access_token=servicio.emitir_token(usuario), usuario=usuario)
 
 

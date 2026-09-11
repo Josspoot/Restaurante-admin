@@ -411,6 +411,58 @@ pytest tests/test_seguridad.py -q
 
 ---
 
+## Despliegue
+
+### Por qué no funciona en Vercel
+
+Vercel ejecuta funciones *serverless*: el disco es de solo lectura salvo `/tmp`, y cada
+petición puede caer en una instancia distinta. Esta aplicación crea su base SQLite al
+arrancar, así que la función revienta antes de atender nada
+(`sqlite3.OperationalError: unable to open database file`). Y aunque se apuntara a `/tmp`,
+los datos morirían entre peticiones.
+
+**SQLite necesita un proceso con disco.** Para eso sirven Render, Railway o Fly.io. Si
+quieres quedarte en Vercel, hay que cambiar a un PostgreSQL alojado: como todo pasa por
+SQLAlchemy, sería cambiar `DATABASE_URL`, añadir `psycopg[binary]` y crear el punto de
+entrada `api/index.py`.
+
+### Render (plan gratuito)
+
+El repositorio trae `render.yaml`. En Render: **New > Blueprint**, apunta a este
+repositorio y listo. Levanta con:
+
+```
+uvicorn app.main:app --host 0.0.0.0 --port $PORT --no-server-header
+```
+
+### Variables de entorno
+
+| Variable | Para qué | Valor sugerido |
+|---|---|---|
+| `SECRET_KEY` | Firma de los tokens. **Sin ella la app no arranca en producción** | generada por la plataforma |
+| `ENTORNO` | `produccion` exige la llave y activa HSTS | `produccion` |
+| `CONFIAR_PROXY` | Lee la IP real de `X-Forwarded-For` | `true` **solo si hay un proxy delante** |
+| `SEMBRAR_INICIAL` | Carga el menú de ejemplo si la base está vacía | `true` la primera vez |
+| `ADMIN_PASSWORD` | Contraseña del administrador al sembrar | la tuya |
+| `DOCS_PUBLICAS` | Abre `/docs` aunque sea producción | `true` para una demo |
+| `DEMO_ACTIVO` | Muestra los accesos rápidos del login | `true` para una demo |
+
+`DOCS_PUBLICAS` y `DEMO_ACTIVO` son interruptores de tres estados: si no los defines,
+siguen al entorno (abiertos en desarrollo, cerrados en producción). Definirlos manda sobre
+eso, lo que permite desplegar con `ENTORNO="produccion"` —conservando la exigencia de llave
+propia y las cabeceras de seguridad— y aun así dejar Swagger y las cuentas de prueba
+visibles para una presentación.
+
+### Lo que hay que saber del plan gratuito
+
+- **El disco se borra en cada despliegue.** Con `SEMBRAR_INICIAL=true` la base se vuelve a
+  llenar con el menú de ejemplo, pero las órdenes creadas se pierden. Para conservarlas hace
+  falta un disco persistente (de pago) o mover la base a PostgreSQL.
+- **El servicio se duerme tras un rato sin tráfico** y la primera petición tarda unos
+  segundos en despertarlo.
+
+---
+
 ## Cómo lo consume un front
 
 ```js

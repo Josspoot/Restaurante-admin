@@ -1,0 +1,49 @@
+# Despliegue en Render (https://render.com) — plan gratuito.
+#
+# Render ejecuta un proceso persistente con disco, que es justo lo que
+# necesita SQLite. En una plataforma serverless como Vercel la base no
+# sobrevive entre peticiones.
+#
+# Para usarlo: en Render elige "New > Blueprint" y apunta a este repositorio.
+
+services:
+  - type: web
+    name: restaurante-admin
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    # $PORT lo define la plataforma. --no-server-header evita anunciar versión.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --no-server-header
+    healthCheckPath: /api/v1/salud
+    envVars:
+      # Render genera una llave aleatoria y la guarda: no queda en el repositorio.
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: ENTORNO
+        value: produccion
+
+      # Render pone un proxy delante, así que la IP real viaja en X-Forwarded-For.
+      - key: CONFIAR_PROXY
+        value: "true"
+
+      # Carga el menú y los usuarios de ejemplo la primera vez.
+      # Ponlo en "false" cuando ya tengas tus propios datos.
+      - key: SEMBRAR_INICIAL
+        value: "true"
+
+      # Contraseña del administrador. Cámbiala en el panel de Render antes
+      # del primer arranque; si la dejas vacía se usa la de ejemplo.
+      - key: ADMIN_PASSWORD
+        sync: false
+
+      # Para una demostración académica conviene dejar Swagger y los accesos
+      # rápidos visibles. En un despliegue real pon las dos en "false".
+      - key: DOCS_PUBLICAS
+        value: "true"
+      - key: DEMO_ACTIVO
+        value: "true"
+
+      - key: PYTHON_VERSION
+        value: "3.12.3"

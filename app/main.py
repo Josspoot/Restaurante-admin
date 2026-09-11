@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.controllers import api_router
 from app.core.config import settings
-from app.core.database import crear_tablas
+from app.core.database import crear_tablas, sembrar_si_hace_falta
 from app.core.exceptions import (
     DemasiadosIntentos,
     ErrorDominio,
@@ -24,12 +24,13 @@ from app.core.exceptions import (
 async def lifespan(app: FastAPI):
     # Al arrancar: crea el archivo SQLite y las tablas si no existen.
     crear_tablas()
+    sembrar_si_hace_falta()
     yield
 
 
 # En producción la documentación deja de ser pública: describe todos los
 # endpoints y sus esquemas, que es un mapa gratis para quien vaya a atacar.
-_docs = settings.DOCS_PUBLICAS and not settings.es_produccion
+_docs = settings.mostrar_docs
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -168,5 +169,5 @@ def salud():
         "estado": "ok",
         "app": settings.APP_NAME,
         "version": settings.VERSION,
-        "demo": not settings.es_produccion,
+        "demo": settings.demo_activo,
     }

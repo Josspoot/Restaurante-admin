@@ -57,3 +57,26 @@ def crear_tablas() -> None:
     from app import models  # noqa: F401  importa las entidades para registrarlas
 
     Base.metadata.create_all(bind=engine)
+
+
+def sembrar_si_hace_falta() -> None:
+    """Carga el menú y los usuarios de ejemplo si la base está vacía.
+
+    Existe porque en las plataformas de despliegue gratuitas no hay consola
+    para ejecutar `python seed.py` a mano: sin esto la aplicación arranca con
+    la base creada pero sin un solo usuario, y nadie puede entrar.
+    """
+    if not settings.SEMBRAR_INICIAL:
+        return
+
+    from sqlalchemy import func, select
+
+    from app.models import Usuario
+
+    with SessionLocal() as db:
+        if db.scalar(select(func.count(Usuario.id))):
+            return  # ya hay datos: no se toca nada
+
+    import seed
+
+    seed.main()

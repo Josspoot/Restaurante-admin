@@ -48,9 +48,19 @@ class Limitador:
         self._registro.clear()
 
 
-# Los cupos salen de la configuración, para poder ajustarlos sin tocar código.
+# Dos cupos distintos, a propósito.
+#
+# El de IP es estrecho: frena a quien prueba contraseñas en serie.
+# El de cuenta es más ancho porque, si fuera igual de estrecho, cualquiera
+# podría dejar fuera a un usuario concreto durante toda la ventana fallando
+# ocho veces con su correo. Así el atacante choca primero contra su propio
+# límite de IP, y bloquear a alguien de verdad exige muchos orígenes distintos.
 limitador_login = Limitador(
     intentos=settings.LOGIN_INTENTOS,
+    ventana_segundos=settings.LOGIN_VENTANA_SEGUNDOS,
+)
+limitador_cuenta = Limitador(
+    intentos=settings.LOGIN_INTENTOS * 3,
     ventana_segundos=settings.LOGIN_VENTANA_SEGUNDOS,
 )
 limitador_registro = Limitador(intentos=5, ventana_segundos=600)

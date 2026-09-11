@@ -4,6 +4,9 @@ Uso:  python seed.py
 """
 from decimal import Decimal
 
+import sys
+
+from app.core.config import settings
 from app.core.database import SessionLocal, crear_tablas
 from app.core.security import hashear_password
 from app.models import Categoria, Producto, RolUsuario, Usuario
@@ -47,7 +50,13 @@ def main() -> None:
             print("La base de datos ya tiene información. Borra restaurante.db para recargarla.")
             return
 
+        # En un despliegue real la contraseña del administrador se pasa por
+        # variable de entorno; las de ejemplo solo valen para desarrollo.
+        creadas = []
         for nombre, email, password, rol in USUARIOS:
+            if rol is RolUsuario.ADMIN and settings.ADMIN_PASSWORD:
+                password = settings.ADMIN_PASSWORD
+            creadas.append((rol, email, password))
             db.add(
                 Usuario(
                     nombre=nombre,
@@ -55,6 +64,14 @@ def main() -> None:
                     hashed_password=hashear_password(password),
                     rol=rol,
                 )
+            )
+
+        if settings.es_produccion and not settings.ADMIN_PASSWORD:
+            print(
+                "\n  AVISO: se sembraron las contraseñas de ejemplo en un entorno de\n"
+                "  producción. Define ADMIN_PASSWORD antes de sembrar, o cambia la\n"
+                "  contraseña del administrador en cuanto entres.\n",
+                file=sys.stderr,
             )
 
         productos = 0
@@ -70,7 +87,7 @@ def main() -> None:
         db.commit()
         print(f"Listo: {len(USUARIOS)} usuarios, {len(MENU)} categorías y {productos} productos.")
         print("\nCuentas de prueba:")
-        for nombre, email, password, rol in USUARIOS:
+        for rol, email, password in creadas:
             print(f"  {rol.value:<8} {email:<28} {password}")
     finally:
         db.close()

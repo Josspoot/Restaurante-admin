@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.core.database import Base, get_db
-from app.core.limitador import limitador_login, limitador_registro
+from app.core.limitador import limitador_cuenta, limitador_login, limitador_registro
 from app.core.security import hashear_password
 from app.main import app
 from app.models import Categoria, Producto, RolUsuario, Usuario
@@ -15,6 +15,7 @@ from app.models import Categoria, Producto, RolUsuario, Usuario
 def _limitadores_limpios():
     """Los limitadores son globales: sin esto una prueba dejaría bloqueada a la siguiente."""
     limitador_login.reiniciar()
+    limitador_cuenta.reiniciar()
     limitador_registro.reiniciar()
     yield
 

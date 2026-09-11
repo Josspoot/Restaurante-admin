@@ -52,11 +52,38 @@ class Settings(BaseSettings):
         "http://localhost:5500", "http://127.0.0.1:5500",
     ]
 
-    DOCS_PUBLICAS: bool = True
+    # Interruptores de tres estados: None = decide el entorno, True/False = manda
+    # lo que digas. Así se puede desplegar con ENTORNO="produccion" (que exige
+    # SECRET_KEY propia y activa HSTS) y aun así dejar la documentación abierta
+    # o las cuentas de prueba activas para una demostración.
+    DOCS_PUBLICAS: bool | None = None
+    DEMO_ACTIVO: bool | None = None
+
+    # Detrás de un proxy (Render, Railway, Nginx) la IP real viaja en
+    # X-Forwarded-For. Solo actívalo si de verdad hay un proxy delante: si no,
+    # cualquiera falsifica esa cabecera y se salta el límite de intentos.
+    CONFIAR_PROXY: bool = False
+
+    # Siembra el menú y los usuarios de ejemplo si la base está vacía.
+    # Necesario en plataformas sin acceso a consola.
+    SEMBRAR_INICIAL: bool = False
+    ADMIN_PASSWORD: str | None = None
 
     @property
     def es_produccion(self) -> bool:
         return self.ENTORNO.lower() not in ("desarrollo", "dev", "local", "test")
+
+    @property
+    def mostrar_docs(self) -> bool:
+        if self.DOCS_PUBLICAS is not None:
+            return self.DOCS_PUBLICAS
+        return not self.es_produccion
+
+    @property
+    def demo_activo(self) -> bool:
+        if self.DEMO_ACTIVO is not None:
+            return self.DEMO_ACTIVO
+        return not self.es_produccion
 
 
 def _asegurar_llave(config: Settings) -> Settings:

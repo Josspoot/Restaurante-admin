@@ -185,3 +185,71 @@ def test_salud_declara_si_es_entorno_de_demo(client):
 def test_en_produccion_no_se_ofrecen_cuentas_de_prueba(client, monkeypatch):
     monkeypatch.setattr(settings, "ENTORNO", "produccion")
     assert client.get("/api/v1/salud").json()["demo"] is False
+
+
+# ============================================== configuración de despliegue
+
+def test_produccion_puede_abrir_docs_y_demo_a_propósito():
+    """Permite desplegar con ENTORNO=produccion sin perder la demostración."""
+    from app.core.config import Settings
+
+    cerrado = Settings(ENTORNO="produccion", SECRET_KEY="x" * 40)
+    assert cerrado.mostrar_docs is False and cerrado.demo_activo is False
+
+    abierto = Settings(
+        ENTORNO="produccion", SECRET_KEY="x" * 40, DOCS_PUBLICAS=True, DEMO_ACTIVO=True
+    )
+    assert abierto.mostrar_docs is True and abierto.demo_activo is True
+    # Abrir la documentación no afloja lo demás.
+    assert abierto.es_produccion is True
+
+
+def test_sin_proxy_no_se_cree_la_cabecera_falsificable(client, monkeypatch):
+    """X-Forwarded-For solo vale si CONFIAR_PROXY está activo."""
+    monkeypatch.setattr(settings, "CONFIAR_PROXY", False)
+    for _ in range(settings.LOGIN_INTENTOS):
+        client.post("/api/v1/auth/login-json", json=CREDENCIALES_MALAS,
+                    headers={"X-Forwarded-For": "1.2.3.4"})
+
+    # Cambiar la IP inventada no debe estrenar cupo de intentos.
+    r = client.post("/api/v1/auth/login-json", json=CREDENCIALES_MALAS,
+                    headers={"X-Forwarded-For": "9.9.9.9"})
+    assert r.status_code == 429
+
+
+def test_con_proxy_cada_ip_lleva_su_propia_cuenta(client, monkeypatch):
+    """Detrás de un proxy real, un atacante no debe bloquear a los demás."""
+    monkeypatch.setattr(settings, "CONFIAR_PROXY", True)
+    for _ in range(settings.LOGIN_INTENTOS):
+        client.post("/api/v1/auth/login-json", json=CREDENCIALES_MALAS,
+                    headers={"X-Forwarded-For": "1.2.3.4"})
+
+    bloqueado = client.post("/api/v1/auth/login-json", json=CREDENCIALES_MALAS,
+                            headers={"X-Forwarded-For": "1.2.3.4"})
+    assert bloqueado.status_code == 429
+
+    # Otro usuario, otra IP: sigue pudiendo intentar. Falla por credenciales (401),
+    # no por el bloqueo del vecino.
+    otro = client.post("/api/v1/auth/login-json", json=CREDENCIALES_MALAS,
+                       headers={"X-Forwarded-For": "5.6.7.8"})
+    assert otro.status_code == 401
+
+
+def test_nadie_puede_bloquear_la_cuenta_de_otro_a_voluntad(client, monkeypatch):
+    """El cupo por cuenta es más ancho que el de IP, así que agotar el propio
+    límite no deja fuera al dueño legítimo del correo."""
+    monkeypatch.setattr(settings, "CONFIAR_PROXY", True)
+    atacante = {"X-Forwarded-For": "6.6.6.6"}
+
+    for _ in range(settings.LOGIN_INTENTOS):
+        client.post("/api/v1/auth/login-json", json=CREDENCIALES_MALAS, headers=atacante)
+    assert client.post("/api/v1/auth/login-json", json=CREDENCIALES_MALAS,
+                       headers=atacante).status_code == 429
+
+    # El usuario real, desde su propia IP, sigue pudiendo entrar.
+    r = client.post(
+        "/api/v1/auth/login-json",
+        json={"email": "admin@test.com", "password": "admin123"},
+        headers={"X-Forwarded-For": "10.0.0.1"},
+    )
+    assert r.status_code == 200
