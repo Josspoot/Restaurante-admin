@@ -170,7 +170,4 @@ def salud():
         "app": settings.APP_NAME,
         "version": settings.VERSION,
         "demo": settings.demo_activo,
-        # Si se definió ADMIN_PASSWORD, la cuenta de administrador ya no tiene
-        # la contraseña de ejemplo y su acceso rápido mandaría una incorrecta.
-        "demo_admin": settings.demo_activo and not settings.ADMIN_PASSWORD,
     }

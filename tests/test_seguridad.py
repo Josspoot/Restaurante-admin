@@ -253,21 +253,3 @@ def test_nadie_puede_bloquear_la_cuenta_de_otro_a_voluntad(client, monkeypatch):
         headers={"X-Forwarded-For": "10.0.0.1"},
     )
     assert r.status_code == 200
-
-
-def test_no_se_ofrece_el_acceso_rapido_de_admin_si_tiene_contrasena_propia(client, monkeypatch):
-    """El botón mandaba la contraseña de ejemplo y fallaba en cualquier
-    despliegue que definiera ADMIN_PASSWORD."""
-    monkeypatch.setattr(settings, "ADMIN_PASSWORD", None)
-    assert client.get("/api/v1/salud").json()["demo_admin"] is True
-
-    monkeypatch.setattr(settings, "ADMIN_PASSWORD", "UnaClavePropia123")
-    cuerpo = client.get("/api/v1/salud").json()
-    assert cuerpo["demo"] is True          # mesero y cliente siguen disponibles
-    assert cuerpo["demo_admin"] is False   # el de admin, no
-
-
-def test_en_produccion_cerrada_no_hay_ningun_acceso_rapido(client, monkeypatch):
-    monkeypatch.setattr(settings, "DEMO_ACTIVO", False)
-    cuerpo = client.get("/api/v1/salud").json()
-    assert cuerpo["demo"] is False and cuerpo["demo_admin"] is False
