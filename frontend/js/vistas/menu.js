@@ -3,6 +3,7 @@ import { carrito } from "../carrito.js";
 import { sesion } from "../sesion.js";
 import { ir } from "../router.js";
 import { avisar, cargando, dinero, esc, vacio } from "../ui.js";
+import { vistaMenuCliente } from "./menu_cliente.js";
 import { icono } from "../iconos.js";
 
 const IVA = 0.16; // solo para la vista previa; el total real lo calcula el backend
@@ -19,7 +20,14 @@ const bannerDestino = (orden) => `
     </span>
   </div>`;
 
-export async function vistaMenu(contenedor, { consulta }) {
+export async function vistaMenu(contenedor, opciones) {
+  // El comensal ve la portada y la carta ilustrada; el personal conserva la
+  // rejilla compacta, que es lo que necesita quien toma comandas todo el día.
+  if (!sesion.esPersonal) return vistaMenuCliente(contenedor, opciones);
+  return vistaMenuPersonal(contenedor, opciones);
+}
+
+async function vistaMenuPersonal(contenedor, { consulta }) {
   // #/menu?orden=5 -> en vez de crear una orden nueva, se le agregan platillos
   // a una mesa que ya esta abierta.
   const ordenDestinoId = consulta.get("orden");
