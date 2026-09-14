@@ -1228,3 +1228,7 @@ img { max-width: 100%; display: block; }
   background: var(--amarillo-pale);
   font-size: .8rem; color: #8a6200; font-weight: 600;
 }
+
+/* Las insignias de estado dentro del panel de avisos van en formato reducido */
+.aviso-fila__cabecera .insignia { padding: 2px 8px; font-size: .66rem; }
+.aviso-fila__cabecera .insignia::before { width: 5px; height: 5px; }
