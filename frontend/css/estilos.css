@@ -907,3 +907,47 @@ img { max-width: 100%; display: block; }
 .requisito--ok { color: var(--ok); }
 .requisito--falta { color: var(--tinta-suave); }
 .requisito--falta span { font-weight: 550; }
+
+/* ==================================================== PIE DE PÁGINA */
+
+.pie {
+  margin-top: 64px;
+  border-top: 1px solid var(--borde);
+  background: var(--blanco);
+}
+
+.pie__cuerpo {
+  max-width: var(--ancho);
+  margin: 0 auto;
+  padding: 44px 24px 32px;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 40px;
+}
+
+.pie__marca { display: flex; gap: 14px; align-items: flex-start; }
+.pie__nombre { font-weight: 700; font-size: 1.05rem; letter-spacing: -.02em; margin-bottom: 6px; }
+.pie__lema { font-size: .86rem; color: var(--tinta-suave); max-width: 38ch; line-height: 1.6; }
+
+.pie__columna p { font-size: .86rem; color: var(--tinta-suave); line-height: 1.9; }
+.pie__titulo {
+  font-size: .74rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--tinta); margin-bottom: 8px;
+}
+
+.pie__base {
+  max-width: var(--ancho);
+  margin: 0 auto;
+  padding: 18px 24px 28px;
+  border-top: 1px solid var(--borde);
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-size: .8rem; color: var(--tinta-tenue);
+}
+.pie__legal { color: var(--tinta-tenue); }
+
+@media (max-width: 860px) {
+  .pie__cuerpo { grid-template-columns: 1fr; gap: 28px; padding-top: 34px; }
+  .pie__base { flex-direction: column; gap: 6px; }
+}
+
+@media print { .pie { display: none !important; } }
