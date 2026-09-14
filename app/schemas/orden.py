@@ -1,9 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.models.enums import EstadoItem, EstadoOrden, TipoOrden
+from app.models.enums import EstadoItem, EstadoOrden, MetodoPago, TipoOrden
 from app.schemas.pago import PagoRespuesta
 from app.schemas.usuario import UsuarioPublico
 
@@ -39,6 +39,42 @@ class OrdenCrear(BaseModel):
         default=None, description="Solo lo usa el personal; el cliente se toma del token"
     )
     items: list[OrdenItemCrear] = Field(min_length=1)
+
+    # --- Datos de entrega: obligatorios si el pedido sale del restaurante ---
+    contacto_nombre: str | None = Field(default=None, max_length=120)
+    contacto_telefono: str | None = Field(default=None, max_length=30)
+    contacto_direccion: str | None = Field(default=None, max_length=300)
+    metodo_pago_preferido: MetodoPago | None = Field(
+        default=None, description="Cómo piensa pagar. Es una intención, no un cobro"
+    )
+
+    @model_validator(mode="after")
+    def _exigir_datos_de_entrega(self):
+        """En una mesa basta el número; fuera del local hace falta a quién buscar.
+
+        El domicilio solo se pide para envíos: en un pedido para recoger, el
+        cliente viene al restaurante y su dirección no aporta nada.
+        """
+        if self.tipo is TipoOrden.LOCAL:
+            return self
+
+        faltan = []
+        if not (self.contacto_nombre or "").strip():
+            faltan.append("nombre")
+        if not (self.contacto_telefono or "").strip():
+            faltan.append("teléfono")
+        if self.metodo_pago_preferido is None:
+            faltan.append("método de pago")
+        if self.tipo is TipoOrden.DOMICILIO and not (self.contacto_direccion or "").strip():
+            faltan.append("domicilio")
+
+        if faltan:
+            legible = {
+                TipoOrden.PARA_LLEVAR: "para llevar",
+                TipoOrden.DOMICILIO: "a domicilio",
+            }[self.tipo]
+            raise ValueError(f"Para un pedido {legible} falta: {', '.join(faltan)}")
+        return self
 
 
 class OrdenCambiarEstado(BaseModel):
@@ -100,6 +136,11 @@ class OrdenRespuesta(BaseModel):
     estado: EstadoOrden
     mesa: int | None
     notas: str | None
+    contacto_nombre: str | None
+    contacto_telefono: str | None
+    contacto_direccion: str | None
+    metodo_pago_preferido: MetodoPago | None
+    es_para_llevar: bool
     cliente: UsuarioPublico | None
     mesero: UsuarioPublico | None
     items: list[OrdenItemRespuesta]

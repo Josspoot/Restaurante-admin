@@ -11,6 +11,8 @@
   <script type="module" src="./js/config.js"></script>
 </head>
 <body>
+  <div class="fondo-vivo" id="fondo-vivo" hidden aria-hidden="true"></div>
+
   <header class="cabecera" id="cabecera" hidden>
     <a class="marca" href="#/menu">
       <span class="marca__icono"><svg class="ico" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.25"/></svg></span>
@@ -29,6 +31,39 @@
   </header>
 
   <main class="contenido" id="vista"></main>
+
+  <footer class="pie" id="pie" hidden>
+    <div class="pie__cuerpo">
+      <div class="pie__marca">
+        <span class="marca__icono" id="pie-icono"></span>
+        <div>
+          <p class="pie__nombre">Sabor</p>
+          <p class="pie__lema">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            Sed do eiusmod tempor incididunt ut labore.</p>
+        </div>
+      </div>
+
+      <nav class="pie__columna" aria-label="Contacto">
+        <p class="pie__titulo">Contacto</p>
+        <p>Lorem ipsum 1234, Col. Dolor Sit</p>
+        <p>Consectetur, Adipiscing 97000</p>
+        <p>+52 999 000 0000</p>
+        <p>lorem@ipsum.test</p>
+      </nav>
+
+      <nav class="pie__columna" aria-label="Horario">
+        <p class="pie__titulo">Horario</p>
+        <p>Lunes a jueves &middot; 13:00 &ndash; 23:00</p>
+        <p>Viernes y sábado &middot; 13:00 &ndash; 01:00</p>
+        <p>Domingo &middot; 13:00 &ndash; 18:00</p>
+      </nav>
+    </div>
+
+    <div class="pie__base">
+      <p>&copy; <span id="pie-anio"></span> Sabor. Todos los derechos reservados.</p>
+      <p class="pie__legal">Lorem ipsum dolor sit amet &middot; Consectetur adipiscing &middot; Elit sed do</p>
+    </div>
+  </footer>
 
   <div class="avisos" id="avisos" aria-live="polite"></div>
 

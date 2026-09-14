@@ -907,3 +907,442 @@ img { max-width: 100%; display: block; }
 .requisito--ok { color: var(--ok); }
 .requisito--falta { color: var(--tinta-suave); }
 .requisito--falta span { font-weight: 550; }
+
+/* ==================================================== PIE DE PÁGINA */
+
+.pie {
+  margin-top: 64px;
+  border-top: 1px solid var(--borde);
+  background: var(--blanco);
+}
+
+.pie__cuerpo {
+  max-width: var(--ancho);
+  margin: 0 auto;
+  padding: 44px 24px 32px;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 40px;
+}
+
+.pie__marca { display: flex; gap: 14px; align-items: flex-start; }
+.pie__nombre { font-weight: 700; font-size: 1.05rem; letter-spacing: -.02em; margin-bottom: 6px; }
+.pie__lema { font-size: .86rem; color: var(--tinta-suave); max-width: 38ch; line-height: 1.6; }
+
+.pie__columna p { font-size: .86rem; color: var(--tinta-suave); line-height: 1.9; }
+.pie__titulo {
+  font-size: .74rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--tinta); margin-bottom: 8px;
+}
+
+.pie__base {
+  max-width: var(--ancho);
+  margin: 0 auto;
+  padding: 18px 24px 28px;
+  border-top: 1px solid var(--borde);
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-size: .8rem; color: var(--tinta-tenue);
+}
+.pie__legal { color: var(--tinta-tenue); }
+
+@media (max-width: 860px) {
+  .pie__cuerpo { grid-template-columns: 1fr; gap: 28px; padding-top: 34px; }
+  .pie__base { flex-direction: column; gap: 6px; }
+}
+
+@media print { .pie { display: none !important; } }
+
+/* ======================================================= MENÚ DEL CLIENTE */
+
+/* --- Portada -------------------------------------------------------------
+   El carrusel sale del ancho del contenido para ocupar toda la pantalla, y
+   se desvanece conforme se baja: la carta toma el relevo sin un corte seco. */
+
+.portada {
+  --salida: 0;
+  margin: -32px calc(50% - 50vw) 8px;
+  padding: 28px max(24px, calc(50vw - var(--ancho) / 2)) 8px;
+  opacity: calc(1 - var(--salida) * 1.15);
+  transform: translateY(calc(var(--salida) * -26px)) scale(calc(1 - var(--salida) * .05));
+  transform-origin: top center;
+  will-change: opacity, transform;
+}
+
+.portada__marco {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, var(--amarillo-pale) 0%, var(--rojo-claro) 100%);
+  border: 1px solid var(--borde);
+}
+
+.portada__pista {
+  display: flex;
+  transition: transform 620ms cubic-bezier(.65, 0, .35, 1);
+}
+
+.diapo {
+  flex: 0 0 100%;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  align-items: center;
+  gap: 32px;
+  padding: 34px 44px;
+  min-height: 300px;
+}
+
+.diapo__arte {
+  border-radius: var(--r-md);
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  box-shadow: 0 16px 34px -18px rgba(43, 33, 24, .45);
+}
+.ilustracion { width: 100%; height: 100%; display: block; }
+
+.diapo__categoria {
+  display: inline-block;
+  font-size: .72rem; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--rojo-oscuro);
+  margin-bottom: 10px;
+}
+.diapo__nombre { font-size: 2rem; line-height: 1.1; margin-bottom: 10px; }
+.diapo__desc { color: var(--tinta-suave); max-width: 46ch; margin-bottom: 20px; }
+.diapo__pie { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.diapo__precio { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.portada__flecha {
+  position: absolute; top: 50%;
+  display: grid; place-items: center;
+  width: 38px; height: 38px;
+  transform: translateY(-50%);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, .88);
+  color: var(--tinta-suave);
+  cursor: pointer;
+  transition: var(--transicion);
+}
+.portada__flecha:hover { background: var(--blanco); color: var(--rojo); border-color: var(--rojo-borde); }
+.portada__flecha--izq { left: 14px; }
+.portada__flecha--der { right: 14px; }
+.portada__flecha--der svg { transform: rotate(180deg); }
+
+.portada__puntos {
+  position: absolute; left: 0; right: 0; bottom: 16px;
+  display: flex; justify-content: center; gap: 8px;
+}
+.punto {
+  width: 8px; height: 8px; padding: 0;
+  border: none; border-radius: var(--r-full);
+  background: rgba(43, 33, 24, .22);
+  cursor: pointer;
+  transition: var(--transicion);
+}
+.punto:hover { background: rgba(43, 33, 24, .4); }
+.punto--activo { width: 26px; background: var(--rojo); }
+
+.portada__pista-scroll {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin-top: 18px;
+  font-size: .82rem; color: var(--tinta-tenue);
+}
+.portada__flecha-abajo {
+  width: 8px; height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  animation: bajar 1.8s ease-in-out infinite;
+}
+@keyframes bajar {
+  0%, 100% { transform: rotate(45deg) translate(0, 0); opacity: .5; }
+  50%      { transform: rotate(45deg) translate(3px, 3px); opacity: 1; }
+}
+
+/* --- Carta --------------------------------------------------------------- */
+
+.carta { padding-top: 12px; }
+.carta__grupo { margin-bottom: 52px; }
+.carta__titulo {
+  font-size: 1.35rem;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.carta__rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.platillo {
+  display: flex;
+  flex-direction: column;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: transform 220ms cubic-bezier(.4, 0, .2, 1), border-color var(--transicion),
+              box-shadow 220ms;
+}
+.platillo:hover {
+  transform: translateY(-4px);
+  border-color: var(--rojo-borde);
+  box-shadow: 0 18px 30px -22px rgba(43, 33, 24, .5);
+}
+
+.platillo__arte { aspect-ratio: 4 / 3; overflow: hidden; }
+.platillo__cuerpo { display: flex; flex-direction: column; flex: 1; padding: 16px 18px 18px; }
+.platillo__nombre { font-weight: 650; margin-bottom: 6px; }
+.platillo__desc {
+  font-size: .85rem; color: var(--tinta-suave); line-height: 1.55;
+  flex: 1; margin-bottom: 16px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.platillo__pie { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.platillo__precio { font-weight: 700; font-size: 1.08rem; font-variant-numeric: tabular-nums; }
+
+/* --- Entrada al hacer scroll --------------------------------------------- */
+
+.revelable {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 560ms cubic-bezier(.4, 0, .2, 1) var(--retraso, 0ms),
+              transform 560ms cubic-bezier(.4, 0, .2, 1) var(--retraso, 0ms);
+}
+.revelable.revelado { opacity: 1; transform: none; }
+
+/* --- El platillo volando al ticket --------------------------------------- */
+
+.volador {
+  position: fixed;
+  z-index: 95;
+  pointer-events: none;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  box-shadow: 0 14px 28px -14px rgba(43, 33, 24, .5);
+}
+
+/* --- Ticket flotante ------------------------------------------------------ */
+
+.ticket-flotante {
+  position: fixed;
+  right: 24px; bottom: 24px;
+  z-index: 70;
+  display: grid; place-items: center;
+  width: 58px; height: 58px;
+  border: none; border-radius: var(--r-full);
+  background: var(--tinta);
+  color: var(--blanco);
+  cursor: pointer;
+  box-shadow: 0 12px 26px -10px rgba(43, 33, 24, .6);
+  transition: var(--transicion);
+}
+.ticket-flotante:hover { transform: scale(1.06); }
+.ticket-flotante--lleno { background: var(--rojo); }
+.ticket-flotante--late { animation: latido 620ms cubic-bezier(.36, .07, .19, .97); }
+@keyframes latido {
+  0%, 100% { transform: scale(1); }
+  30%      { transform: scale(1.22); }
+  60%      { transform: scale(.94); }
+}
+
+.ticket-flotante__conteo {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 22px; height: 22px; padding: 0 6px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  background: var(--amarillo);
+  color: var(--tinta);
+  font-size: .72rem; font-weight: 700;
+  border: 2px solid var(--fondo);
+}
+
+.ticket-panel {
+  position: fixed;
+  right: 24px; bottom: 94px;
+  z-index: 71;
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(74vh, 660px);
+  overflow-y: auto;
+  padding: 22px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  box-shadow: 0 24px 50px -22px rgba(43, 33, 24, .55);
+  opacity: 0;
+  transform: translateY(14px) scale(.97);
+  transform-origin: bottom right;
+  transition: opacity 200ms ease-out, transform 200ms cubic-bezier(.4, 0, .2, 1);
+}
+.ticket-panel--abierto { opacity: 1; transform: none; }
+
+.ticket-panel__cabecera {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.ticket-panel__lineas {
+  display: flex; flex-direction: column; gap: 14px;
+  max-height: 32vh; overflow-y: auto;
+  margin: 0 -4px; padding: 0 4px;
+}
+
+/* --- Adaptación a pantallas chicas ---------------------------------------- */
+
+@media (max-width: 900px) {
+  .diapo {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 26px 24px 40px;
+    text-align: center;
+    min-height: 0;
+  }
+  .diapo__arte { max-width: 260px; margin: 0 auto; width: 100%; }
+  .diapo__nombre { font-size: 1.5rem; }
+  .diapo__desc { margin-inline: auto; }
+  .diapo__pie { justify-content: center; }
+  .portada__flecha { display: none; }
+}
+
+@media (max-width: 720px) {
+  .portada { margin-top: -24px; }
+  .carta__rejilla { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .platillo__cuerpo { padding: 12px 14px 14px; }
+  .platillo__desc { -webkit-line-clamp: 2; font-size: .8rem; }
+  .ticket-flotante { right: 16px; bottom: 16px; }
+  .ticket-panel { right: 16px; left: 16px; bottom: 84px; width: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portada { opacity: 1 !important; transform: none !important; }
+  .portada__pista { transition: none; }
+  .revelable { opacity: 1; transform: none; transition: none; }
+  .portada__flecha-abajo { animation: none; }
+  .ticket-flotante--late { animation: none; }
+}
+
+.ticket-panel__destino {
+  margin-bottom: 12px; padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: var(--amarillo-pale);
+  font-size: .8rem; color: #8a6200; font-weight: 600;
+}
+
+/* Las insignias de estado dentro del panel de avisos van en formato reducido */
+.aviso-fila__cabecera .insignia { padding: 2px 8px; font-size: .66rem; }
+.aviso-fila__cabecera .insignia::before { width: 5px; height: 5px; }
+
+/* =================================================== TELÓN DEL COMENSAL
+
+   Manchas de color y platillos muy tenues por detrás. El contenido se eleva
+   con z-index para que nunca compita con la lectura, y la capa no captura el
+   ratón. Todo el movimiento es lentísimo: debe notarse solo de reojo. */
+
+.fondo-vivo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.contenido, .pie { position: relative; z-index: 1; }
+
+.fondo-vivo__mancha {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: .55;
+  animation: derivar 30s ease-in-out infinite alternate;
+}
+
+@keyframes derivar {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(3vw, -4vh, 0) scale(1.14); }
+}
+
+.fondo-vivo__plato {
+  position: absolute;
+  aspect-ratio: 4 / 3;
+  opacity: .085;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transform: rotate(var(--giro, 0deg));
+  animation: flotar 17s ease-in-out infinite alternate;
+}
+
+@keyframes flotar {
+  from { transform: rotate(var(--giro, 0deg)) translateY(0); }
+  to   { transform: rotate(var(--giro, 0deg)) translateY(-22px); }
+}
+
+/* En pantallas chicas las ilustraciones estorban más de lo que aportan:
+   se quedan solo las manchas de color. */
+@media (max-width: 720px) {
+  .fondo-vivo__plato { display: none; }
+  .fondo-vivo__mancha { opacity: .4; filter: blur(56px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fondo-vivo__mancha, .fondo-vivo__plato { animation: none; }
+}
+
+/* La portada respira con el mismo pulso, sin llegar a distraer */
+.portada__marco {
+  background: linear-gradient(135deg,
+    var(--amarillo-pale) 0%, #fdeee2 45%, var(--rojo-claro) 100%);
+  background-size: 180% 180%;
+  animation: respirar 22s ease-in-out infinite alternate;
+}
+@keyframes respirar {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portada__marco { animation: none; background-size: 100% 100%; }
+}
+
+/* Con el telón detrás, las tarjetas necesitan opacidad propia para no
+   volverse translúcidas sobre las manchas. */
+.platillo, .tarjeta, .ticket-panel, .panel-avisos { background: var(--superficie); }
+
+/* Datos de quien recoge o recibe el pedido */
+.entrega {
+  margin: 4px 0 6px;
+  padding: 14px 14px 2px;
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+  background: var(--fondo);
+}
+.entrega__titulo {
+  font-size: .8rem; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+  color: var(--tinta-suave);
+  margin-bottom: 12px;
+}
+
+/* Ficha de entrega en el detalle de una orden que sale del restaurante */
+.ficha-entrega {
+  border-left: 3px solid var(--amarillo);
+  margin-bottom: 22px;
+}
+.ficha-entrega__titulo {
+  display: flex; align-items: center; gap: 9px;
+  font-weight: 650; font-size: .95rem;
+  margin-bottom: 14px;
+}
+.ficha-entrega__datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px 24px;
+  margin: 0;
+}
+.ficha-entrega__datos dt {
+  font-size: .72rem; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin-bottom: 2px;
+}
+.ficha-entrega__datos dd { margin: 0; font-weight: 550; font-size: .92rem; }
+.ficha-entrega__nota { margin-top: 14px; font-size: .78rem; color: var(--tinta-tenue); }

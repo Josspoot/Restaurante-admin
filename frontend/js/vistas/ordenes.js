@@ -22,6 +22,7 @@ const FILTROS = [
   {
     clave: "pagada",
     etiqueta: "Cobro",
+    soloPersonal: true,
     opciones: [
       { valor: "", texto: "Todas" },
       { valor: "false", texto: "Por cobrar" },
@@ -31,6 +32,7 @@ const FILTROS = [
   {
     clave: "cerrada",
     etiqueta: "Mesa",
+    soloPersonal: true,
     opciones: [
       { valor: "", texto: "Todas" },
       { valor: "false", texto: "Abiertas" },
@@ -63,8 +65,12 @@ export async function vistaOrdenes(contenedor, { consulta }) {
   const $resumen = document.getElementById("resumen");
   const $lista = document.getElementById("lista");
 
+  // Cobrar y cerrar la mesa son tareas del personal: al comensal solo le
+  // sirve filtrar por cómo va su pedido.
+  const filtrosVisibles = FILTROS.filter((g) => !g.soloPersonal || sesion.esPersonal);
+
   function pintarFiltros() {
-    $filtros.innerHTML = FILTROS.map(
+    $filtros.innerHTML = filtrosVisibles.map(
       (grupo) => `
         <div class="filtro-fila">
           <span class="filtro-fila__etiqueta">${grupo.etiqueta}</span>
@@ -139,7 +145,7 @@ export async function vistaOrdenes(contenedor, { consulta }) {
     );
   }
 
-  const hayFiltros = () => Object.values(activos).some(Boolean);
+  const hayFiltros = () => filtrosVisibles.some((g) => activos[g.clave]);
 
   /** Cuánto dinero sigue en la calle: es el dato que un encargado busca primero. */
   function pintarResumen(ordenes) {

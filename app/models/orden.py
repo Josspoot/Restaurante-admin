@@ -6,7 +6,7 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
-from app.models.enums import EstadoOrden, TipoOrden
+from app.models.enums import EstadoOrden, MetodoPago, TipoOrden
 
 CERO = Decimal("0.00")
 
@@ -37,6 +37,19 @@ class Orden(Base):
     subtotal: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=CERO, nullable=False)
     impuestos: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=CERO, nullable=False)
     total: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=CERO, nullable=False)
+
+    # Datos de quien recoge o recibe el pedido. Solo aplican cuando no se come
+    # en el local: en una mesa, el numero de mesa ya identifica al comensal.
+    contacto_nombre: Mapped[str | None] = mapped_column(String(120))
+    contacto_telefono: Mapped[str | None] = mapped_column(String(30))
+    contacto_direccion: Mapped[str | None] = mapped_column(String(300))
+
+    # Como piensa pagar. Es una intencion, NO un cobro: el pago real se
+    # registra aparte cuando el dinero entra, y solo entonces la orden queda
+    # saldada.
+    metodo_pago_preferido: Mapped[MetodoPago | None] = mapped_column(
+        _enum(MetodoPago)
+    )
 
     # Mesa cerrada: la orden quedo terminada al 100% y ya no admite cambios.
     cerrada_en: Mapped[datetime | None] = mapped_column(DateTime)
@@ -85,6 +98,11 @@ class Orden(Base):
     @property
     def pagada(self) -> bool:
         return self.saldo <= CERO
+
+    @property
+    def es_para_llevar(self) -> bool:
+        """Si el pedido sale del restaurante y necesita datos de contacto."""
+        return self.tipo is not TipoOrden.LOCAL
 
     @property
     def cerrada(self) -> bool:

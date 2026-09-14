@@ -83,6 +83,11 @@ class OrdenService:
             cliente_id=cliente_id,
             mesero_id=mesero_id,
             estado=EstadoOrden.PENDIENTE,
+            # El esquema ya garantizó que vengan completos si hacen falta.
+            contacto_nombre=(datos.contacto_nombre or "").strip() or None,
+            contacto_telefono=(datos.contacto_telefono or "").strip() or None,
+            contacto_direccion=(datos.contacto_direccion or "").strip() or None,
+            metodo_pago_preferido=datos.metodo_pago_preferido,
         )
         for linea in datos.items:
             orden.items.append(self._construir_item(linea, tanda=1))

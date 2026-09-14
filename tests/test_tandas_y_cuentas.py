@@ -270,3 +270,80 @@ def test_propina_por_cuenta_se_calcula_sobre_lo_que_paga_cada_quien(client, mese
     propinas = {p["cuenta"]: p["propina"] for p in r["pagos"]}
     assert propinas == {1: "11.60", 2: "5.80"}   # 10% de cada cuenta, no del total
     assert r["pagada"] is True
+
+
+# =========================================================== datos de entrega
+
+
+def test_un_pedido_para_llevar_exige_a_quien_buscar(client, mesero):
+    """En una mesa basta el número; fuera del local hace falta el contacto."""
+    r = client.post(
+        "/api/v1/ordenes",
+        json={"tipo": "PARA_LLEVAR", "items": [{"producto_id": PASTOR, "cantidad": 1}]},
+        headers=mesero,
+    )
+    assert r.status_code == 422
+    # Es validación de entrada, así que llega en el formato de FastAPI.
+    detalle = r.json()["detail"][0]["msg"]
+    assert "nombre" in detalle and "teléfono" in detalle and "método de pago" in detalle
+
+
+def test_el_domicilio_solo_se_exige_a_domicilio(client, mesero):
+    """Quien recoge viene al restaurante: su dirección no aporta nada."""
+    contacto = {
+        "contacto_nombre": "Ana Ruiz",
+        "contacto_telefono": "9991234567",
+        "metodo_pago_preferido": "EFECTIVO",
+        "items": [{"producto_id": PASTOR, "cantidad": 1}],
+    }
+    assert client.post(
+        "/api/v1/ordenes", json={"tipo": "PARA_LLEVAR", **contacto}, headers=mesero
+    ).status_code == 201
+
+    r = client.post("/api/v1/ordenes", json={"tipo": "DOMICILIO", **contacto}, headers=mesero)
+    assert r.status_code == 422
+    assert "domicilio" in r.json()["detail"][0]["msg"]
+
+
+def test_se_guardan_y_se_devuelven_los_datos_de_entrega(client, mesero):
+    orden = client.post(
+        "/api/v1/ordenes",
+        json={
+            "tipo": "DOMICILIO",
+            "contacto_nombre": "Ana Ruiz",
+            "contacto_telefono": "9991234567",
+            "contacto_direccion": "Calle 60 #123, Centro",
+            "metodo_pago_preferido": "TARJETA",
+            "items": [{"producto_id": PASTOR, "cantidad": 1}],
+        },
+        headers=mesero,
+    ).json()
+
+    assert orden["es_para_llevar"] is True
+    assert orden["contacto_nombre"] == "Ana Ruiz"
+    assert orden["contacto_direccion"] == "Calle 60 #123, Centro"
+    assert orden["metodo_pago_preferido"] == "TARJETA"
+
+    # El método es una intención, no un cobro: la orden sigue debiendo.
+    assert orden["pagada"] is False
+    assert orden["total_pagado"] == "0.00"
+    assert orden["pagos"] == []
+
+
+def test_comer_aqui_no_pide_nada_de_eso(client, mesero):
+    orden = client.post(
+        "/api/v1/ordenes",
+        json={"tipo": "LOCAL", "mesa": 3, "items": [{"producto_id": PASTOR, "cantidad": 1}]},
+        headers=mesero,
+    ).json()
+    assert orden["es_para_llevar"] is False
+    assert orden["contacto_nombre"] is None and orden["metodo_pago_preferido"] is None
+
+
+def test_el_cliente_tambien_debe_dar_sus_datos(client, cliente):
+    r = client.post(
+        "/api/v1/ordenes",
+        json={"tipo": "DOMICILIO", "items": [{"producto_id": PASTOR, "cantidad": 1}]},
+        headers=cliente,
+    )
+    assert r.status_code == 422

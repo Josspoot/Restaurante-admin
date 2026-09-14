@@ -78,7 +78,13 @@ def test_para_llevar_se_cierra_al_entrar_a_cocina(client, mesero):
     """Para llevar y domicilio se congelan en cuanto la comanda sale a cocina."""
     orden = client.post(
         "/api/v1/ordenes",
-        json={"tipo": "PARA_LLEVAR", "items": [{"producto_id": 1, "cantidad": 1}]},
+        json={
+            "tipo": "PARA_LLEVAR",
+            "contacto_nombre": "Ana",
+            "contacto_telefono": "9991234567",
+            "metodo_pago_preferido": "EFECTIVO",
+            "items": [{"producto_id": 1, "cantidad": 1}],
+        },
         headers=mesero,
     ).json()
     assert orden["ampliable"] is True  # mientras siga pendiente, si
