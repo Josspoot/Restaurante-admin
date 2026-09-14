@@ -1232,3 +1232,77 @@ img { max-width: 100%; display: block; }
 /* Las insignias de estado dentro del panel de avisos van en formato reducido */
 .aviso-fila__cabecera .insignia { padding: 2px 8px; font-size: .66rem; }
 .aviso-fila__cabecera .insignia::before { width: 5px; height: 5px; }
+
+/* =================================================== TELÓN DEL COMENSAL
+
+   Manchas de color y platillos muy tenues por detrás. El contenido se eleva
+   con z-index para que nunca compita con la lectura, y la capa no captura el
+   ratón. Todo el movimiento es lentísimo: debe notarse solo de reojo. */
+
+.fondo-vivo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.contenido, .pie { position: relative; z-index: 1; }
+
+.fondo-vivo__mancha {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: .55;
+  animation: derivar 30s ease-in-out infinite alternate;
+}
+
+@keyframes derivar {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(3vw, -4vh, 0) scale(1.14); }
+}
+
+.fondo-vivo__plato {
+  position: absolute;
+  aspect-ratio: 4 / 3;
+  opacity: .085;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transform: rotate(var(--giro, 0deg));
+  animation: flotar 17s ease-in-out infinite alternate;
+}
+
+@keyframes flotar {
+  from { transform: rotate(var(--giro, 0deg)) translateY(0); }
+  to   { transform: rotate(var(--giro, 0deg)) translateY(-22px); }
+}
+
+/* En pantallas chicas las ilustraciones estorban más de lo que aportan:
+   se quedan solo las manchas de color. */
+@media (max-width: 720px) {
+  .fondo-vivo__plato { display: none; }
+  .fondo-vivo__mancha { opacity: .4; filter: blur(56px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fondo-vivo__mancha, .fondo-vivo__plato { animation: none; }
+}
+
+/* La portada respira con el mismo pulso, sin llegar a distraer */
+.portada__marco {
+  background: linear-gradient(135deg,
+    var(--amarillo-pale) 0%, #fdeee2 45%, var(--rojo-claro) 100%);
+  background-size: 180% 180%;
+  animation: respirar 22s ease-in-out infinite alternate;
+}
+@keyframes respirar {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portada__marco { animation: none; background-size: 100% 100%; }
+}
+
+/* Con el telón detrás, las tarjetas necesitan opacidad propia para no
+   volverse translúcidas sobre las manchas. */
+.platillo, .tarjeta, .ticket-panel, .panel-avisos { background: var(--superficie); }

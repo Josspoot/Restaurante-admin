@@ -7,6 +7,7 @@ import { carrito } from "./carrito.js";
 import { iniciarAvisador, detenerAvisador } from "./avisador.js";
 import { esc } from "./ui.js";
 import { icono } from "./iconos.js";
+import { pintarFondo } from "./fondo.js";
 
 import { vistaLogin } from "./vistas/login.js";
 import { vistaMenu } from "./vistas/menu.js";
@@ -41,6 +42,8 @@ function pintarCabecera(rutaActiva) {
   const pie = document.getElementById("pie");
   cabecera.hidden = !sesion.activa;
   pie.hidden = !sesion.activa;
+  // El telón decorativo es solo para el comensal.
+  pintarFondo(sesion.activa && !sesion.esPersonal);
   if (!sesion.activa) return;
 
   // El pie es estático salvo el año y el logotipo, que se rellenan una vez.

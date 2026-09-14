@@ -13,7 +13,7 @@ import { ilustracion } from "../ilustraciones.js";
 import { avisar, cargando, dinero, esc, vacio } from "../ui.js";
 
 const IVA = 0.16;            // solo para la vista previa; el total lo calcula el backend
-const MS_POR_DIAPOSITIVA = 5200;
+const MS_POR_DIAPOSITIVA = 3000;
 const MAX_DESTACADOS = 5;
 
 const sinMovimiento = () =>
