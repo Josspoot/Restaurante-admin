@@ -56,7 +56,14 @@ function mensajeDeError(datos, estado) {
   if (typeof datos.detail === "string") return datos.detail;            // HTTPException
   if (Array.isArray(datos.detail)) {                                    // validacion 422
     return datos.detail
-      .map((e) => `${e.loc?.slice(1).join(".") ?? "campo"}: ${e.msg}`)
+      .map((e) => {
+        // Una regla que mira varios campos a la vez no señala ninguno en
+        // concreto: ahí el mensaje va solo, sin un nombre de campo vacío
+        // delante. Y "Value error," es ruido de Pydantic, no del negocio.
+        const campo = (e.loc ?? []).slice(1).join(".");
+        const texto = String(e.msg ?? "").replace(/^Value error,\s*/, "");
+        return campo ? `${campo}: ${texto}` : texto;
+      })
       .join(" · ");
   }
   return `Error ${estado}`;

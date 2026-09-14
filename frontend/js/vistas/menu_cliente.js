@@ -343,17 +343,117 @@ function latir(nodo) {
   nodo.classList.add("ticket-flotante--late");
 }
 
+const METODOS_PAGO = [
+  ["EFECTIVO", "Efectivo"],
+  ["TARJETA", "Tarjeta"],
+  ["TRANSFERENCIA", "Transferencia"],
+];
+
 function montarTicket(limpiadores, ordenDestino) {
   const boton = document.getElementById("ticket-flotante");
   const panel = document.getElementById("ticket-panel");
   const conteo = document.getElementById("ticket-conteo");
   let abierto = false;
 
+  // Lo que el cliente va escribiendo vive aquí y no en el DOM: el panel se
+  // vuelve a pintar cada vez que cambia el carrito, y si no lo guardáramos
+  // aparte se perderían las notas a medio escribir.
+  const pedido = {
+    tipo: "LOCAL",
+    mesa: "",
+    nombre: "",
+    telefono: "",
+    direccion: "",
+    metodo: "EFECTIVO",
+    notas: "",
+  };
+
   const pintarConteo = () => {
     const piezas = carrito.piezas;
     conteo.hidden = piezas === 0;
     conteo.textContent = piezas;
     boton.classList.toggle("ticket-flotante--lleno", piezas > 0);
+  };
+
+  /**
+   * Vuelca al estado lo que haya ahora mismo en los campos.
+   *
+   * El estado se alimenta de los eventos del usuario, pero un valor puesto por
+   * código —el autocompletado del navegador, por ejemplo— no dispara ninguno.
+   * Al enviar, lo que manda es el DOM.
+   */
+  const sincronizarCampos = (raiz) => {
+    raiz.querySelectorAll("[data-campo]").forEach((campo) => {
+      pedido[campo.dataset.campo] = campo.value;
+    });
+  };
+
+  /** Campos del pedido. Cambian según se coma aquí, se recoja o se lleve a casa. */
+  const camposPedido = () => {
+    if (ordenDestino) return "";
+    const fuera = pedido.tipo !== "LOCAL";
+
+    return `
+      <div class="campo">
+        <label for="tipo">¿Cómo lo quieres?</label>
+        <select id="tipo" data-campo="tipo">
+          <option value="LOCAL" ${pedido.tipo === "LOCAL" ? "selected" : ""}>Comer aquí</option>
+          <option value="PARA_LLEVAR" ${pedido.tipo === "PARA_LLEVAR" ? "selected" : ""}>Para llevar</option>
+          <option value="DOMICILIO" ${pedido.tipo === "DOMICILIO" ? "selected" : ""}>A domicilio</option>
+        </select>
+      </div>
+
+      ${
+        fuera
+          ? `<div class="entrega">
+               <p class="entrega__titulo">${
+                 pedido.tipo === "DOMICILIO" ? "¿A dónde lo llevamos?" : "¿A nombre de quién?"
+               }</p>
+               <div class="campo">
+                 <label for="nombre">Nombre</label>
+                 <input id="nombre" data-campo="nombre" value="${esc(pedido.nombre)}"
+                        autocomplete="name" placeholder="Tu nombre">
+               </div>
+               <div class="campo">
+                 <label for="telefono">Teléfono</label>
+                 <input id="telefono" data-campo="telefono" type="tel" value="${esc(pedido.telefono)}"
+                        autocomplete="tel" placeholder="999 000 0000">
+               </div>
+               ${
+                 pedido.tipo === "DOMICILIO"
+                   ? `<div class="campo">
+                        <label for="direccion">Domicilio</label>
+                        <textarea id="direccion" data-campo="direccion"
+                          autocomplete="street-address"
+                          placeholder="Calle, número, colonia y referencias">${esc(pedido.direccion)}</textarea>
+                      </div>`
+                   : `<p class="campo__ayuda" style="margin:-8px 0 14px">
+                        Lo recoges en el restaurante; no necesitamos tu domicilio.
+                      </p>`
+               }
+               <div class="campo">
+                 <label for="metodo">¿Cómo vas a pagar?</label>
+                 <select id="metodo" data-campo="metodo">
+                   ${METODOS_PAGO.map(
+                     ([valor, texto]) =>
+                       `<option value="${valor}" ${pedido.metodo === valor ? "selected" : ""}>${texto}</option>`
+                   ).join("")}
+                 </select>
+                 <span class="campo__ayuda">Se cobra al entregarte el pedido.</span>
+               </div>
+             </div>`
+          : `<div class="campo">
+               <label for="mesa">Mesa <span style="font-weight:400">(opcional)</span></label>
+               <input id="mesa" data-campo="mesa" type="number" min="1" max="200"
+                      value="${esc(pedido.mesa)}" placeholder="Nº">
+             </div>`
+      }
+
+      <div class="campo">
+        <label for="notas">Notas para la cocina</label>
+        <textarea id="notas" data-campo="notas"
+          placeholder="Alergias, sin cebolla, etc.">${esc(pedido.notas)}</textarea>
+      </div>`;
   };
 
   const pintarPanel = () => {
@@ -388,27 +488,7 @@ function montarTicket(limpiadores, ordenDestino) {
                </div>
              </div>
 
-             ${
-               ordenDestino
-                 ? ""
-                 : `<div class="rejilla-campos" style="margin-top:18px">
-                      <div class="campo">
-                        <label for="tipo">¿Cómo lo quieres?</label>
-                        <select id="tipo">
-                          <option value="LOCAL">Comer aquí</option>
-                          <option value="PARA_LLEVAR">Para llevar</option>
-                        </select>
-                      </div>
-                      <div class="campo">
-                        <label for="mesa">Mesa <span style="font-weight:400">(opcional)</span></label>
-                        <input id="mesa" type="number" min="1" max="200" placeholder="Nº">
-                      </div>
-                    </div>
-                    <div class="campo">
-                      <label for="notas">Notas para la cocina</label>
-                      <textarea id="notas" placeholder="Alergias, sin cebolla, etc."></textarea>
-                    </div>`
-             }
+             <div style="margin-top:18px">${camposPedido()}</div>
 
              <button class="btn btn--bloque" id="ticket-enviar">${
                ordenDestino ? `Agregar a ${esc(ordenDestino.numero)}` : "Enviar mi pedido"
@@ -428,6 +508,24 @@ function montarTicket(limpiadores, ordenDestino) {
         else carrito.cambiarCantidad(id, b.dataset.mas ? 1 : -1);
       })
     );
+
+    // Cada tecleo se guarda; cambiar el tipo repinta los campos que aplican.
+    panel.querySelectorAll("[data-campo]").forEach((campo) => {
+      const guardar = () => {
+        pedido[campo.dataset.campo] = campo.value;
+      };
+      // Los dos eventos: un <select> no siempre emite "input", y un <input>
+      // de texto no emite "change" hasta perder el foco.
+      campo.addEventListener("input", guardar);
+      campo.addEventListener("change", guardar);
+      if (campo.dataset.campo === "tipo") {
+        campo.addEventListener("change", () => {
+          guardar();
+          pintarPanel();
+        });
+      }
+    });
+
     document.getElementById("ticket-vaciar").addEventListener("click", () => carrito.vaciar());
     document.getElementById("ticket-enviar").addEventListener("click", enviar);
   };
@@ -460,12 +558,18 @@ function montarTicket(limpiadores, ordenDestino) {
           orden = await api.agregarItem(ordenDestino.id, item);
         }
       } else {
-        const mesa = document.getElementById("mesa").value;
+        sincronizarCampos(panel);
+        const fuera = pedido.tipo !== "LOCAL";
         orden = await api.crearOrden({
-          tipo: document.getElementById("tipo").value,
-          mesa: mesa ? Number(mesa) : null,
-          notas: document.getElementById("notas").value.trim() || null,
+          tipo: pedido.tipo,
+          mesa: !fuera && pedido.mesa ? Number(pedido.mesa) : null,
+          notas: pedido.notas.trim() || null,
           items: carrito.aItems(),
+          contacto_nombre: fuera ? pedido.nombre.trim() || null : null,
+          contacto_telefono: fuera ? pedido.telefono.trim() || null : null,
+          contacto_direccion:
+            pedido.tipo === "DOMICILIO" ? pedido.direccion.trim() || null : null,
+          metodo_pago_preferido: fuera ? pedido.metodo : null,
         });
       }
       carrito.vaciar();

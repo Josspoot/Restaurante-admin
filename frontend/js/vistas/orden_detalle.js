@@ -83,6 +83,7 @@ export async function vistaOrdenDetalle(contenedor, { id }) {
       </div>
 
       ${orden.estado === "CANCELADA" ? "" : pasosFlujo()}
+      ${orden.es_para_llevar ? fichaEntrega() : ""}
       ${orden.ampliable && orden.estado !== "PENDIENTE" ? avisoAmpliable() : ""}
 
       <div class="columnas">
@@ -106,6 +107,38 @@ export async function vistaOrdenDetalle(contenedor, { id }) {
       </div>`;
 
     enlazar();
+  }
+
+  /** A quién buscar cuando el pedido sale del restaurante. */
+  function fichaEntrega() {
+    const filas = [
+      ["Nombre", orden.contacto_nombre],
+      ["Teléfono", orden.contacto_telefono],
+      ["Domicilio", orden.contacto_direccion],
+      ["Pagará con", ETIQUETA_METODO[orden.metodo_pago_preferido] ?? orden.metodo_pago_preferido],
+    ].filter(([, valor]) => valor);
+
+    if (!filas.length) return "";
+    return `
+      <div class="tarjeta ficha-entrega">
+        <div class="ficha-entrega__titulo">
+          ${icono(orden.tipo === "DOMICILIO" ? "mesa" : "recibo", { tam: 18 })}
+          ${orden.tipo === "DOMICILIO" ? "Entrega a domicilio" : "Pedido para recoger"}
+        </div>
+        <dl class="ficha-entrega__datos">
+          ${filas
+            .map(
+              ([etiqueta, valor]) => `<div>
+                <dt>${esc(etiqueta)}</dt>
+                <dd>${esc(valor)}</dd>
+              </div>`
+            )
+            .join("")}
+        </dl>
+        <p class="ficha-entrega__nota">
+          El método es lo que el cliente dijo que usaría; el cobro se registra aparte.
+        </p>
+      </div>`;
   }
 
   const dato = (etiqueta, valor) => `

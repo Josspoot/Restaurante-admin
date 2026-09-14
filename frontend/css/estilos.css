@@ -1306,3 +1306,43 @@ img { max-width: 100%; display: block; }
 /* Con el telón detrás, las tarjetas necesitan opacidad propia para no
    volverse translúcidas sobre las manchas. */
 .platillo, .tarjeta, .ticket-panel, .panel-avisos { background: var(--superficie); }
+
+/* Datos de quien recoge o recibe el pedido */
+.entrega {
+  margin: 4px 0 6px;
+  padding: 14px 14px 2px;
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: var(--r-md);
+  background: var(--fondo);
+}
+.entrega__titulo {
+  font-size: .8rem; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+  color: var(--tinta-suave);
+  margin-bottom: 12px;
+}
+
+/* Ficha de entrega en el detalle de una orden que sale del restaurante */
+.ficha-entrega {
+  border-left: 3px solid var(--amarillo);
+  margin-bottom: 22px;
+}
+.ficha-entrega__titulo {
+  display: flex; align-items: center; gap: 9px;
+  font-weight: 650; font-size: .95rem;
+  margin-bottom: 14px;
+}
+.ficha-entrega__datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px 24px;
+  margin: 0;
+}
+.ficha-entrega__datos dt {
+  font-size: .72rem; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin-bottom: 2px;
+}
+.ficha-entrega__datos dd { margin: 0; font-weight: 550; font-size: .92rem; }
+.ficha-entrega__nota { margin-top: 14px; font-size: .78rem; color: var(--tinta-tenue); }
