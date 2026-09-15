@@ -1,4 +1,8 @@
 -r requirements.txt
-pytest==8.3.4
+pytest==9.1.1
 httpx==0.28.1
-pip-audit==2.9.0
+pip-audit==2.10.1
+
+# Pruebas de extremo a extremo con navegador.
+# Tras instalarlo hay que bajar el navegador una vez:  playwright install chromium
+pytest-playwright==0.9.0

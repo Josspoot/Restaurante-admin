@@ -11,3 +11,7 @@ venv/
 # Configuración local del IDE
 .idea/
 .vscode/
+
+# Rastros de Playwright
+test-results/
+playwright-report/

@@ -401,6 +401,45 @@ script en línea, el navegador lo bloqueará.
 - **El token se guarda en `localStorage`**, así que un XSS podría leerlo. Por eso la CSP y el
   escapado son la primera línea, no la última.
 
+### Pruebas de extremo a extremo (Playwright)
+
+Además de las pruebas de la API, hay otras que abren un navegador de verdad y
+recorren la aplicación como lo haría una persona.
+
+```bash
+pip install -r requirements-dev.txt
+playwright install chromium        # una sola vez, baja el navegador
+
+pytest                             # todo
+pytest tests/e2e                   # solo navegador
+pytest tests --ignore=tests/e2e    # solo API, mucho más rápido
+```
+
+Para trabajar en ellas:
+
+```bash
+pytest tests/e2e --headed          # viendo la ventana
+pytest tests/e2e --slowmo 400      # a cámara lenta
+playwright codegen http://127.0.0.1:8010/app/   # graba tus clics y escribe el código
+```
+
+**Cómo están montadas.** Una *fixture* de sesión levanta uvicorn en un puerto
+libre contra una base temporal ya sembrada, y lo apaga al terminar. Es de
+sesión porque arrancar el servidor cuesta un par de segundos y hacerlo por
+prueba multiplicaría el tiempo; a cambio las pruebas comparten base, así que
+**cada una crea lo suyo y afirma sobre eso**, nunca sobre totales globales.
+
+Lo que no es el objeto de la prueba se prepara por API en vez de a base de
+clics: montar una orden pulsando botones es lento y la hace fallar por razones
+que no está evaluando.
+
+No hay esperas a ciegas. Playwright reintenta cada condición hasta que se
+cumple, que es justo lo que evita los fallos intermitentes cuando la máquina
+va cargada.
+
+Una *fixture* automática vigila la consola del navegador: si una prueba deja un
+error de JavaScript, falla aunque lo demás haya salido bien.
+
 ### Volver a auditar
 
 ```bash
@@ -522,10 +561,9 @@ pytest -q
   `alg: none`, tokens caducados, escalada de rol, contraseñas cortas, fuga de correos y
   cabeceras de respuesta.
 
-El frontend se verificó manejando un navegador Chromium por CDP, en tres recorridos
-(29 + 24 + 30 comprobaciones): el flujo original, las tandas y cuentas, y el cierre con
-avisos. Incluye una comprobación de que no queda ningún emoji en el DOM. Sin errores de
-consola ni de red.
+Y **39 pruebas de navegador** en `tests/e2e/`, que recorren la aplicación con Playwright:
+el flujo del personal, las tandas y cuentas divididas, el cierre de mesa, los avisos de
+cada rol, la vista del comensal y los datos de entrega.
 
 ---
 
